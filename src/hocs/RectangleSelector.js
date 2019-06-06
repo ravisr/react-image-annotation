@@ -1,99 +1,110 @@
-const getCoordPercentage = (e) => ({
-  x: e.nativeEvent.offsetX / e.currentTarget.offsetWidth * 100,
-  y: e.nativeEvent.offsetY / e.currentTarget.offsetHeight * 100
-})
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-export const TYPE = 'RECTANGLE'
+var getCoordPercentage = function getCoordPercentage(e) {
+  return {
+    x: e.nativeEvent.offsetX / e.currentTarget.offsetWidth * 100,
+    y: e.nativeEvent.offsetY / e.currentTarget.offsetHeight * 100
+  };
+};
 
-export function intersects ({ x, y }, geometry) {
-  if (x < geometry.x) return false
-  if (y < geometry.y) return false
-  if (x > geometry.x + geometry.width)
-    return false
-  if (y > geometry.y + geometry.height)
-    return false
+export var TYPE = 'RECTANGLE';
 
-  return true
+export function intersects(_ref, geometry) {
+  var x = _ref.x,
+      y = _ref.y;
+
+  if (x < geometry.x) return false;
+  if (y < geometry.y) return false;
+  if (x > geometry.x + geometry.width) return false;
+  if (y > geometry.y + geometry.height) return false;
+
+  return true;
 }
 
-export function area (geometry) {
-  return geometry.height * geometry.width
+export function area(geometry) {
+  return geometry.height * geometry.width;
 }
 
-export const methods = {
-  onMouseDown (annotation, e) {
+export var methods = {
+  onMouseDown: function onMouseDown(annotation, e) {
     if (!annotation.selection) {
-      const { x: anchorX, y: anchorY } = getCoordPercentage(e)
+      var _getCoordPercentage = getCoordPercentage(e),
+          anchorX = _getCoordPercentage.x,
+          anchorY = _getCoordPercentage.y;
 
-      return {
-        ...annotation,
-        selection: {
-          ...annotation.selection,
+      return _extends({}, annotation, {
+        selection: _extends({}, annotation.selection, {
           mode: 'SELECTING',
-          anchorX,
-          anchorY
-        }
-      }
+          anchorX: anchorX,
+          anchorY: anchorY,
+		  x1: e.clientX,
+		  y1: e.clientY,
+        })
+      });
     } else {
-      return {}
+      return {};
     }
 
-    return annotation
+    // return annotation;
   },
-
-  onMouseUp (annotation, e) {
+  onMouseUp: function onMouseUp(annotation, e) {
     if (annotation.selection) {
-      const { selection, geometry } = annotation
+      var selection = annotation.selection,
+          geometry = annotation.geometry;
 
       if (!geometry) {
-        return {}
+        return {};
       }
 
       switch (annotation.selection.mode) {
         case 'SELECTING':
-          return {
-            ...annotation,
-            selection: {
-              ...annotation.selection,
+          return _extends({}, annotation, {
+            selection: _extends({}, annotation.selection, {
               showEditor: true,
               mode: 'EDITING'
-            }
-          }
+            })
+          });
         default:
-          break
+          break;
       }
     }
-
-    return annotation
+	// annotation.windowX2 = e.clientX;
+	// annotation.windowY2 = e.clientY;
+    return annotation;
   },
-
-  onMouseMove (annotation, e) {
+  onMouseMove: function onMouseMove(annotation, e) {
     if (annotation.selection && annotation.selection.mode === 'SELECTING') {
-      const { anchorX, anchorY } = annotation.selection
-      const { x: newX, y: newY } = getCoordPercentage(e)
-      const width = newX - anchorX
-      const height = newY - anchorY
+      var _annotation$selection = annotation.selection,
+          anchorX = _annotation$selection.anchorX,
+          anchorY = _annotation$selection.anchorY;
 
-      return {
-        ...annotation,
-        geometry: {
-          ...annotation.geometry,
+      var _getCoordPercentage2 = getCoordPercentage(e),
+          newX = _getCoordPercentage2.x,
+          newY = _getCoordPercentage2.y;
+
+      var width = newX - anchorX;
+      var height = newY - anchorY;
+
+      return _extends({}, annotation, {
+        geometry: _extends({}, annotation.geometry, {
           type: TYPE,
           x: width > 0 ? anchorX : newX,
           y: height > 0 ? anchorY : newY,
           width: Math.abs(width),
-          height: Math.abs(height)
-        }
-      }
+          height: Math.abs(height),
+		  x2:e.clientX,
+		  y2:e.clientY
+        })
+      });
     }
 
-    return annotation
+    return annotation;
   }
-}
+};
 
 export default {
-  TYPE,
-  intersects,
-  area,
-  methods
-}
+  TYPE: TYPE,
+  intersects: intersects,
+  area: area,
+  methods: methods
+};
